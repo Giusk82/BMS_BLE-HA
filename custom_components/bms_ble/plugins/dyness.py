@@ -8,37 +8,35 @@ class DynessBMS(BaseBMS):
 
     @staticmethod
     def matcher_dict_list() -> list[MatcherPattern]:
-        # Questo serve ad aiobmsble per capire che questo driver è per Dyness
-        # Puoi usare il nome che appare quando scansioni la batteria
-        return [{"local_name": "Dyness", "connectable": True}]
+        # Aggiornato con il nome esatto rilevato tramite nRF Connect
+        return [{"local_name": "DYNWRGBC5957D218A3F", "connectable": True}]
 
     # --- UUIDs ---
-    # Questi identificano i canali di comunicazione della batteria.
-    # Se il sistema non si connette, probabilmente devi aggiornarli con quelli corretti.
+    # Confermati dalla scansione nRF Connect
     @staticmethod
     def uuid_services() -> tuple[str, ...]:
         return ("6e400001-b5a3-f393-e0a9-e50e24dcca9e",)
 
     @staticmethod
     def uuid_rx() -> str:
+        # Caratteristica su cui la batteria invia i dati (Notify)
         return "6e400003-b5a3-f393-e0a9-e50e24dcca9e"
 
     @staticmethod
     def uuid_tx() -> str:
+        # Caratteristica su cui inviamo i comandi (Write)
         return "6e400002-b5a3-f393-e0a9-e50e24dcca9e"
 
-    # --- La parte difficile: interpretare i dati ---
+    # --- Gestione dati ---
     def _notification_handler(self, _sender: BleakGATTCharacteristic, data: bytearray) -> None:
-        # Quando la batteria invia dati, arrivano qui come 'data' (in formato esadecimale)
-        # Esempio: print(data.hex()) per vedere cosa sta arrivando
+        # Quando la batteria invia dati, li salviamo per l'elaborazione
         self._msg = bytes(data)
         self._msg_event.set()
 
     async def _async_update(self) -> BMSSample:
-        # Qui devi trasformare i byte in valori reali (Volt, Ampere, SoC).
-        # Per ora restituisce valori fissi per verificare che il driver venga caricato.
+        # Per ora restituisce valori fissi per verificare la connessione avvenuta
         return {
-            "voltage": 52.0,  # Esempio
+            "voltage": 52.0,
             "current": 0.0,
             "temperature": 25.0,
         }
